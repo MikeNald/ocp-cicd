@@ -42,7 +42,11 @@ spec:
             sh "oc project stage"
             sh "oc delete bc,dc,svc,route -l app=shopping -n stage"
             // create build. override the exit code since it complains about exising imagestream
+<<<<<<< HEAD
             sh "oc new-build --name=shopping --image-stream=jboss-eap71-openshift:latest --binary=true --labels=app=shopping -n stage || true"
+=======
+            sh "oc new-build --name=shopping --image-stream=jboss-eap71-openshift:latest --binary=true --labels=app=shopping --source-secret=8013980-ternaworkshop-pull-secret -n stage || true"
+>>>>>>> 35f70d7eb3d9554e464a3eb0f1d405ea3af175a6
             // build image
             sh "oc start-build shopping --from-dir=oc-build --wait=true -n stage"
             // deploy image
