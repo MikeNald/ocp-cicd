@@ -1,5 +1,5 @@
 #!/bin/bash
-OCP_VERSION="v3.7";
+OCP_VERSION="v3.11";
 LOCALPATH=$PWD
 # create project
 oc login -u developer
@@ -19,24 +19,25 @@ oc new-project prod --display-name="Shopping - Prod"
 
 # import xpaas images for traditional setup
 oc login -u system:admin
-IMAGESTREAMDIR="/usr/share/ansible/openshift-ansible/roles/openshift_examples/files/examples/$OCP_VERSION/image-streams"; \
-XPAASSTREAMDIR="/usr/share/ansible/openshift-ansible/roles/openshift_examples/files/examples/$OCP_VERSION/xpaas-streams"; \
-XPAASTEMPLATES="/usr/share/ansible/openshift-ansible/roles/openshift_examples/files/examples/$OCP_VERSION/xpaas-templates"; \
-DBTEMPLATES="/usr/share/ansible/openshift-ansible/roles/openshift_examples/files/examples/$OCP_VERSION/db-templates"; \
-QSTEMPLATES="/usr/share/ansible/openshift-ansible/roles/openshift_examples/files/examples/$OCP_VERSION/quickstart-templates"
-oc create -f $IMAGESTREAMDIR/image-streams-rhel7.json -n openshift
-oc create -f $XPAASSTREAMDIR/jboss-image-streams.json -n openshift
-oc create -f $DBTEMPLATES -n openshift
-oc create -f $QSTEMPLATES -n openshift
-oc create -f $XPAASTEMPLATES -n openshift
-sleep 45
+#IMAGESTREAMDIR="/usr/share/ansible/openshift-ansible/roles/openshift_examples/files/examples/$OCP_VERSION/image-streams"; \
+#XPAASSTREAMDIR="/usr/share/ansible/openshift-ansible/roles/openshift_examples/files/examples/$OCP_VERSION/xpaas-streams"; \
+#XPAASTEMPLATES="/usr/share/ansible/openshift-ansible/roles/openshift_examples/files/examples/$OCP_VERSION/xpaas-templates"; \
+#DBTEMPLATES="/usr/share/ansible/openshift-ansible/roles/openshift_examples/files/examples/$OCP_VERSION/db-templates"; \
+#QSTEMPLATES="/usr/share/ansible/openshift-ansible/roles/openshift_examples/files/examples/$OCP_VERSION/quickstart-templates"
+#oc create -f $IMAGESTREAMDIR/image-streams-rhel7.json -n openshift
+#oc create -f $XPAASSTREAMDIR/jboss-image-streams.json -n openshift
+#oc create -f $DBTEMPLATES -n openshift
+#oc create -f $QSTEMPLATES -n openshift
+#oc create -f $XPAASTEMPLATES -n openshift
+#sleep 45
 
 cd $LOCALPATH
 
 # fixing user permission
+oc login -u admin
 oc policy add-role-to-user admin system:serviceaccount:cicd:default
 oc adm policy add-role-to-user cluster-admin developer
-oc tag openshift/jboss-eap70-openshift:1.6 openshift/jboss-eap70-openshift:latest
+#oc tag openshift/jboss-eap71-openshift:1.6 openshift/jboss-eap70-openshift:latest
 oc adm policy add-role-to-user cluster-admin developer
 oc adm policy add-role-to-user admin developer -n cicd
 oc adm policy add-role-to-user admin developer -n stage
@@ -44,11 +45,9 @@ oc adm policy add-role-to-user admin developer -n prod
 
 # CI/CD creation steps
 oc login -u developer
-#oc new-app -f http://bit.ly/openshift-gogs-persistent-template --param=HOSTNAME=gogs-cicd.cloud.redhat.int -n cicd
 oc new-app -f ./gogs-persistent-template.yaml -n cicd
 oc new-app jenkins-ephemeral -l app=jenkins -p MEMORY_LIMIT=1Gi -n cicd
 oc create -f ./pipelines.yaml  -n cicd
-#oc create -f  https://raw.githubusercontent.com/OpenShiftDemos/nexus/master/nexus2-persistent-template.yaml -n cicd
 oc create -f  ./nexus2-persistent-template.yaml -n cicd 
 oc new-app nexus2-persistent -n cicd
 
